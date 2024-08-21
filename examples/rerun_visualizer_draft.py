@@ -47,6 +47,17 @@ class MeshDescription:
 def color_float_to_int(f: list[float]) -> int:
     return(np.array(f*255, dtype=int))
 
+COLORS_PREDEFINED = {
+    "red": [255, 0, 0],
+    "green": [0, 255, 0],
+    "blue": [0, 0, 255],
+    "yellow": [255, 255, 0],
+    "cyan": [0, 255, 255],
+    "magenta": [255, 0, 255],
+    "white": [255, 255, 255],
+    "black": [0, 0, 0],
+}
+
 # def matrix4x4_to_np(m):
 #     return np.array(
 #         [
@@ -185,10 +196,13 @@ class RerunVisualizer(BaseVisualizer):
         self.nu = nu
         self.notebook_embed = notebook_embed
         self.name = name
-        self.viewer_prefix = "/viewer"
-        self.visual_prefix = "/viewer/visual"
-        self.collision_prefix = "/viewer/collision"
-        self.inertias_prefix = "/viewer/inertias"
+        self.viewer_prefix = '/viewer'
+        self.robot_prefix = f"{self.viewer_prefix}/{model.name}"
+        self.visual_prefix = f"{self.robot_prefix}/visual"
+        self.collision_prefix = f"{self.robot_prefix}/collision"
+        self.inertias_prefix = f"{self.robot_prefix}/inertias"
+        self.com_prefix = f"{self.robot_prefix}/center-of-mass"
+        self.objects_prefix = f"{self.viewer_prefix}/objects"
         if not import_rerun_succeed:
             msg = (
                 "Error while importing rerun.\n"
@@ -342,6 +356,62 @@ class RerunVisualizer(BaseVisualizer):
     def load_default(self):
         if self.blueprint is None:
             print("No blueprint provided, using default.")
+
+    def addBox(self, name, size, color="red", type="objects"):
+        if not (len(size) == 3 or len(size) == 1):
+            raise AttributeError("size must be a scalar or a 3D vector")
+        if not isinstance(color, str):
+            if not isinstance(color, list):
+                raise AttributeError("color must be a string or a list of 3 to 4 integers")
+            elif not (len(color)==3 or len(color)==4):
+                raise AttributeError("color list must have 3 or 4 elements")
+        if len(size) == 1:
+            size = [size, size, size]
+        rrSize = rr.datatypes.Vec3D(xyz=size)
+        if isinstance(color, str):
+            if color not in COLORS_PREDEFINED.keys():
+                raise AttributeError(f"color must be one of {COLORS_PREDEFINED.keys()} or a list of rgb values")
+            color = COLORS_PREDEFINED[color]
+        box = rr.archetypes.Boxes3D(sizes=rrSize, colors=color, fill_mode=rr.components.FillMode.Solid)
+
+        match type:
+            case "objects":
+                prefix = self.objects_prefix
+            case "collision":
+                prefix = self.collision_prefix
+            case "visual":
+                prefix = self.visual_prefix
+            case "inertias":
+                prefix = self.inertias_prefix
+            case "com":
+                prefix = self.com_prefix
+            case _:
+                raise AttributeError("type must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
+        rr.log(f"{prefix}/{name}", box)
+
+    def set_pose(self, name, pose, type="objects"):
+        if isinstance(pose, pin.SE3):
+            pose = pin.SE3ToXYZQUAT(pose)
+        else:
+            assert len(pose) == 7
+        tr = rr.Transform3D(
+            translation=rr.datatypes.Vec3D(xyz=pose[0:3]),
+            rotation=rr.datatypes.Quaternion(xyzw=pose[3:7]),
+        )
+        match type:
+            case "objects":
+                prefix = self.objects_prefix
+            case "collision":
+                prefix = self.collision_prefix
+            case "visual":
+                prefix = self.visual_prefix
+            case "inertias":
+                prefix = self.inertias_prefix
+            case "com":
+                prefix = self.com_prefix
+            case _:
+                raise AttributeError("type must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
+        rr.log(f"{prefix}/{name}", tr)
 
     def captureImage(self):
         pass

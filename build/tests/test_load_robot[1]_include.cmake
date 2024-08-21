@@ -1,0 +1,5 @@
+if(EXISTS "/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/build/tests/test_load_robot[1]_tests.cmake")
+  include("/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/build/tests/test_load_robot[1]_tests.cmake")
+else()
+  add_test(test_load_robot_NOT_BUILT test_load_robot_NOT_BUILT)
+endif()

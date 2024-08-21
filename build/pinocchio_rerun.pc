@@ -1,0 +1,22 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${pcfiledir}/../..
+libdir=${pcfiledir}/../../lib
+bindir=${pcfiledir}/../../bin
+pkglibdir=${pcfiledir}/../../lib/pinocchio_rerun
+includedir=${pcfiledir}/../../include
+datarootdir=${pcfiledir}/../../share
+pkgdatarootdir=${pcfiledir}/../../share
+docdir=${pcfiledir}/../../share/doc/pinocchio_rerun
+doxygendocdir=${pcfiledir}/../../share/doc/pinocchio_rerun/doxygen-html
+
+Name: pinocchio_rerun
+Description: A C++-based visualizer for Pinocchio using rerun
+URL: https://github.com/ManifoldFR/pinocchio-rerun
+Version: 0.1.0
+Requires: 
+Conflicts: 
+Libs: -L${libdir} 
+Libs.private: 
+Cflags:  -I${includedir}
+
+

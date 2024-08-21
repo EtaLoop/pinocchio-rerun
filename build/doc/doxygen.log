@@ -1,0 +1,3 @@
+warning: source '/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/doc/pictures' is not a readable file or directory... skipping.
+/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/src/eigen_adapters.hpp:14: warning: Internal inconsistency: scope for class rerun::CollectionAdapter< rerun::Position3D, std::vector< Eigen::Vector3f > > not found!
+/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/src/eigen_adapters.hpp:32: warning: Internal inconsistency: scope for class rerun::CollectionAdapter< rerun::Vector3D, std::vector< Eigen::Vector3f > > not found!

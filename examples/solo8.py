@@ -14,7 +14,6 @@ q0 = pin.neutral(model)
 rr.display(q0)
 rr.display()
 
-
 def displayRandomConfiguration():
     q = pin.randomConfiguration(model)
     q[:3] = np.clip(q[:3], -1., 1.)

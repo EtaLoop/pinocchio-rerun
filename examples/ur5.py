@@ -13,7 +13,7 @@ q0 = pin.neutral(model)
 rr.display(q0)
 
 T = 80
-dt = 0.01
+dt = 0.02
 qs = np.zeros((T + 1, model.nq))
 vs = np.zeros((T + 1, model.nv))
 qs[0] = q0
@@ -41,3 +41,7 @@ for t in range(0, T + 1):
     rr.drawFrameVelocities(frame_ids)
 
 rr.play(list(qs), dt)
+
+import rerun
+traj = [rerun.Scalar(q) for q in qs[2, :]]
+rerun.log("traj", )

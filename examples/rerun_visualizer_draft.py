@@ -231,6 +231,8 @@ class RerunVisualizer(BaseVisualizer):
         self.init_bp_dict()
         self.set_blueprint()
 
+        self.inertias_active = False
+
     def loadPinocchioModel(self, geomModel):
         geomObjects = geomModel.geometryObjects
         for geom in geomObjects:
@@ -301,6 +303,9 @@ class RerunVisualizer(BaseVisualizer):
                 rotation=rr.datatypes.Quaternion(xyzw=xyzquat[3:7]),
             )
             rr.log(path, tr)
+        
+        if self.inertias_active:
+            self.visualizeInertias()
 
     def init_bp_dict(self):
         ## Define BLUEPRINTS
@@ -344,7 +349,6 @@ class RerunVisualizer(BaseVisualizer):
             blueprint = self.blueprints[name]
         rr.send_blueprint(blueprint)
 
-
     def init_viewer(self):
         if self.viewer is None:
             self.viewer = rr.init(
@@ -357,7 +361,7 @@ class RerunVisualizer(BaseVisualizer):
         if self.blueprint is None:
             print("No blueprint provided, using default.")
 
-    def addBox(self, name, size, color="red", type="objects"):
+    def addBox(self, name, size, color="red", category="objects"):
         if not (len(size) == 3 or len(size) == 1):
             raise AttributeError("size must be a scalar or a 3D vector")
         if not isinstance(color, str):
@@ -367,14 +371,14 @@ class RerunVisualizer(BaseVisualizer):
                 raise AttributeError("color list must have 3 or 4 elements")
         if len(size) == 1:
             size = [size, size, size]
-        rrSize = rr.datatypes.Vec3D(xyz=size)
+        # rrSize = rr.datatypes.Vec3D(xyz=size)
         if isinstance(color, str):
             if color not in COLORS_PREDEFINED.keys():
                 raise AttributeError(f"color must be one of {COLORS_PREDEFINED.keys()} or a list of rgb values")
             color = COLORS_PREDEFINED[color]
-        box = rr.archetypes.Boxes3D(sizes=rrSize, colors=color, fill_mode=rr.components.FillMode.Solid)
+        box = rr.archetypes.Boxes3D(sizes=[size], colors=[color], fill_mode="solid")
 
-        match type:
+        match category:
             case "objects":
                 prefix = self.objects_prefix
             case "collision":
@@ -386,10 +390,44 @@ class RerunVisualizer(BaseVisualizer):
             case "com":
                 prefix = self.com_prefix
             case _:
-                raise AttributeError("type must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
+                raise AttributeError("category must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
         rr.log(f"{prefix}/{name}", box)
 
-    def set_pose(self, name, pose, type="objects"):
+    def addEllipsoid(self, name, radii, color="green", category="objects"):
+        if not (len(radii) == 3 or len(radii) == 1):
+            raise AttributeError("size must be a scalar or a 3D vector")
+        if not isinstance(color, str):
+            if not isinstance(color, list):
+                raise AttributeError("color must be a string or a list of 3 to 4 integers")
+            elif not (len(color)==3 or len(color)==4):
+                raise AttributeError("color list must have 3 or 4 elements")
+        if len(radii) == 1:
+            radii = [radii, radii, radii]
+        if isinstance(color, str):
+            if color not in COLORS_PREDEFINED.keys():
+                raise AttributeError(f"color must be one of {COLORS_PREDEFINED.keys()} or a list of rgb values")
+            color = COLORS_PREDEFINED[color]
+        ellipsoids = rr.archetypes.Ellipsoids3D(half_sizes=[radii], colors=[color], fill_mode="solid")
+
+        match category:
+            case "objects":
+                prefix = self.objects_prefix
+            case "collision":
+                prefix = self.collision_prefix
+            case "visual":
+                prefix = self.visual_prefix
+            case "inertias":
+                prefix = self.inertias_prefix
+            case "com":
+                prefix = self.com_prefix
+            case _:
+                raise AttributeError("category must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
+        rr.log(f"{prefix}/{name}", ellipsoids)
+
+    def addSphere(self, name, radius, color="blue", category="objects"):
+        self.addEllipsoid(name, [radius], color, category)
+
+    def set_pose(self, name, pose, category="objects"):
         if isinstance(pose, pin.SE3):
             pose = pin.SE3ToXYZQUAT(pose)
         else:
@@ -398,7 +436,7 @@ class RerunVisualizer(BaseVisualizer):
             translation=rr.datatypes.Vec3D(xyz=pose[0:3]),
             rotation=rr.datatypes.Quaternion(xyzw=pose[3:7]),
         )
-        match type:
+        match category:
             case "objects":
                 prefix = self.objects_prefix
             case "collision":
@@ -410,8 +448,63 @@ class RerunVisualizer(BaseVisualizer):
             case "com":
                 prefix = self.com_prefix
             case _:
-                raise AttributeError("type must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
+                raise AttributeError("category must be one of 'objects', 'collision', 'visual', 'inertias', 'com'")
         rr.log(f"{prefix}/{name}", tr)
+
+    def activateInertias(self, scale=1.0, scale_com=1.0):
+        self.inertias_active = True
+        self.scale = 1.0
+        self.scale_com = 1.0
+
+    def deactivateInertias(self):
+        self.inertias_active = False
+        # TODO remove all inertias from viewer
+
+    def visualizeInertias(self, color="green", scale=None, scale_com=None):
+        if scale is None:
+            scale = self.scale
+        if scale_com is None:
+            scale_com = self.scale_com
+        if not isinstance(color, str):
+            if not isinstance(color, list):
+                raise AttributeError("color must be a string or a list of 3 to 4 integers")
+            elif not (len(color)==3 or len(color)==4):
+                raise AttributeError("color list must have 3 or 4 elements")
+        if isinstance(color, str):
+            if color not in COLORS_PREDEFINED.keys():
+                raise AttributeError(f"color must be one of {COLORS_PREDEFINED.keys()} or a list of rgb values")
+            color = COLORS_PREDEFINED[color]
+
+        for idJoint in range(self.model.njoints):
+            # get inertia tensor
+            I = self.model.inertias[idJoint]
+            if I.mass == 0:
+                continue
+
+            # get box lengthes
+            ## diagonalize inertia tensor
+            eigenvalues, eigenvectors = np.linalg.eigh(I.inertia)
+            I_xx_p, I_yy_p, I_zz_p = eigenvalues
+
+            ## compute box lengthes
+            h = np.sqrt(6 * (I_xx_p + I_yy_p - I_zz_p) / (I.mass)) * scale
+            d = np.sqrt(6 * (I_xx_p - I_yy_p + I_zz_p) / (I.mass)) * scale
+            w = np.sqrt(6 * (-I_xx_p + I_yy_p + I_zz_p) / (I.mass)) * scale
+
+            # get tf between frame link and CoM link
+            oMi = self.data.oMi[idJoint]
+            iMf = pin.SE3.Identity()
+            iMf.translation = I.lever
+            iMf.rotation = eigenvectors
+            oMf = oMi.act(iMf)
+
+            # apply shaped box with tf to MeshCat
+            # TODO change this to add objects only if they are not already in the viewer
+            self.addBox(f"{self.model.names[idJoint]}", [w, d, h], "red", category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}", oMf, category="inertias")
+
+            self.addSphere(f"{self.model.names[idJoint]}_CoM", 0.01*scale_com, "blue", category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}_CoM", oMf, category="inertias")
 
     def captureImage(self):
         pass

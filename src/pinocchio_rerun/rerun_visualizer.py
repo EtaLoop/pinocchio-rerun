@@ -254,24 +254,26 @@ class RerunVisualizer(BaseVisualizer):
                     case hppfcl.BV_kIOS:
                         pass
                     case hppfcl.BV_OBBRSS:
-                        meshDesc = loadMesh(
-                            obj.meshPath,
-                            color_float_to_int(obj.meshColor),
-                        )
-                        rrMesh = meshDescriptionToRerun(meshDesc)
+                        # meshDesc = loadMesh(
+                        #     obj.meshPath,
+                        #     color_float_to_int(obj.meshColor),
+                        # )
+                        # rrMesh = meshDescriptionToRerun(meshDesc)
+                        print(obj.meshPath)
+                        rrMesh = rr.Asset3D(path=obj.meshPath)
                         path = getEntityPath(obj, self.visual_prefix)
                         rr.log(path, rrMesh)
-                        pass
                     case hppfcl.BV_KDOP16:
                         pass
                     case hppfcl.BV_KDOP18:
                         pass
                     case hppfcl.BV_KDOP24:
-                        meshDesc = loadMesh(
-                            obj.meshPath,
-                            color_float_to_int(obj.meshColor),
-                        )
-                        rrMesh = meshDescriptionToRerun(meshDesc)
+                        # meshDesc = loadMesh(
+                        #     obj.meshPath,
+                        #     color_float_to_int(obj.meshColor),
+                        # )
+                        # rrMesh = meshDescriptionToRerun(meshDesc)
+                        rrMesh = rr.Asset3D(path=obj.meshPath)
                         rr.log_timeless(getEntityPath(obj, self.visual_prefix), rrMesh)
                     case _:
                         warn(f"Unknown or unsupported HPP-FCL node type {nodeType}")
@@ -493,18 +495,26 @@ class RerunVisualizer(BaseVisualizer):
 
             # get tf between frame link and CoM link
             oMi = self.data.oMi[idJoint]
+            # oMi = pin.SE3.Identity()
+
             iMf = pin.SE3.Identity()
             iMf.translation = I.lever
-            iMf.rotation = eigenvectors
-            oMf = oMi.act(iMf)
+            
+            fMd = pin.SE3.Identity()
+            fMd.rotation = eigenvectors
 
+            oMf = oMi * iMf
+            oMd = oMf * fMd
             # apply shaped box with tf to MeshCat
             # TODO change this to add objects only if they are not already in the viewer
+            if idJoint == 3:
+                print(f"{self.model.names[idJoint]}")
+                print(eigenvectors)
             self.addBox(f"{self.model.names[idJoint]}", [w, d, h], "red", category="inertias")
-            self.set_pose(f"{self.model.names[idJoint]}", oMf, category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}", oMd, category="inertias")
 
             self.addSphere(f"{self.model.names[idJoint]}_CoM", 0.01*scale_com, "blue", category="inertias")
-            self.set_pose(f"{self.model.names[idJoint]}_CoM", oMf, category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}_CoM", oMd, category="inertias")
 
     def captureImage(self):
         pass

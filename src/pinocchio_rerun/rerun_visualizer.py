@@ -254,13 +254,13 @@ class RerunVisualizer(BaseVisualizer):
                     case hppfcl.BV_kIOS:
                         pass
                     case hppfcl.BV_OBBRSS:
-                        # meshDesc = loadMesh(
-                        #     obj.meshPath,
-                        #     color_float_to_int(obj.meshColor),
-                        # )
-                        # rrMesh = meshDescriptionToRerun(meshDesc)
-                        print(obj.meshPath)
-                        rrMesh = rr.Asset3D(path=obj.meshPath)
+                        meshDesc = loadMesh(
+                            obj.meshPath,
+                            color_float_to_int(obj.meshColor),
+                        )
+                        rrMesh = meshDescriptionToRerun(meshDesc)
+                        # print(obj.meshPath)
+                        # rrMesh = rr.Asset3D(path=obj.meshPath)
                         path = getEntityPath(obj, self.visual_prefix)
                         rr.log(path, rrMesh)
                     case hppfcl.BV_KDOP16:
@@ -268,12 +268,12 @@ class RerunVisualizer(BaseVisualizer):
                     case hppfcl.BV_KDOP18:
                         pass
                     case hppfcl.BV_KDOP24:
-                        # meshDesc = loadMesh(
-                        #     obj.meshPath,
-                        #     color_float_to_int(obj.meshColor),
-                        # )
-                        # rrMesh = meshDescriptionToRerun(meshDesc)
-                        rrMesh = rr.Asset3D(path=obj.meshPath)
+                        meshDesc = loadMesh(
+                            obj.meshPath,
+                            color_float_to_int(obj.meshColor),
+                        )
+                        rrMesh = meshDescriptionToRerun(meshDesc)
+                        # rrMesh = rr.Asset3D(path=obj.meshPath)
                         rr.log_timeless(getEntityPath(obj, self.visual_prefix), rrMesh)
                     case _:
                         warn(f"Unknown or unsupported HPP-FCL node type {nodeType}")

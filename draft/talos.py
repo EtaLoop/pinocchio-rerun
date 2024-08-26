@@ -1,19 +1,20 @@
-import pinocchio_rerun
-import example_robot_data as erd
+import example_robot_data as robex
 import pinocchio as pin
 import numpy as np
+import rerun.blueprint as rrb
+import rerun as rr
 
+from rerun_visualizer_draft import RerunVisualizer
 
-robot = erd.load("talos")
-model = robot.model
-visual_model = robot.visual_model
-rr = pinocchio_rerun.RerunVisualizer(model, visual_model)
-rr.loadViewerModel()
-assert rr.initialized
-q0 = pin.neutral(model)
-rr.display(q0)
+solo = robex.load("talos")
+model = solo.model
+visual_model = solo.visual_model
+collision_model = solo.collision_model
 
-def displayRandomConfiguration():
-    q = pin.randomConfiguration(model)
-    q[:3] = np.clip(q[:3], -1., 1.)
-    rr.display(q)
+rviz = RerunVisualizer(model, collision_model, visual_model)
+rviz.loadViewerModel()
+
+rviz.activateInertias()
+rviz.display(solo.q0)
+
+print("Done loading model")

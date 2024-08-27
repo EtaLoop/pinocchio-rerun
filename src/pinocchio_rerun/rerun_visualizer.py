@@ -254,13 +254,7 @@ class RerunVisualizer(BaseVisualizer):
                     case hppfcl.BV_kIOS:
                         pass
                     case hppfcl.BV_OBBRSS:
-                        meshDesc = loadMesh(
-                            obj.meshPath,
-                            color_float_to_int(obj.meshColor),
-                        )
-                        rrMesh = meshDescriptionToRerun(meshDesc)
-                        # print(obj.meshPath)
-                        # rrMesh = rr.Asset3D(path=obj.meshPath)
+                        rrMesh = rr.Asset3D(path=obj.meshPath)
                         path = getEntityPath(obj, self.visual_prefix)
                         rr.log(path, rrMesh)
                     case hppfcl.BV_KDOP16:
@@ -268,12 +262,7 @@ class RerunVisualizer(BaseVisualizer):
                     case hppfcl.BV_KDOP18:
                         pass
                     case hppfcl.BV_KDOP24:
-                        meshDesc = loadMesh(
-                            obj.meshPath,
-                            color_float_to_int(obj.meshColor),
-                        )
-                        rrMesh = meshDescriptionToRerun(meshDesc)
-                        # rrMesh = rr.Asset3D(path=obj.meshPath)
+                        rrMesh = rr.Asset3D(path=obj.meshPath)
                         rr.log_timeless(getEntityPath(obj, self.visual_prefix), rrMesh)
                     case _:
                         warn(f"Unknown or unsupported HPP-FCL node type {nodeType}")
@@ -303,7 +292,7 @@ class RerunVisualizer(BaseVisualizer):
             tr = rr.Transform3D(
                 translation=rr.datatypes.Vec3D(xyz=xyzquat[0:3]),
                 rotation=rr.datatypes.Quaternion(xyzw=xyzquat[3:7]),
-            )
+                scale = gobj.meshScale)
             rr.log(path, tr)
         
         if self.inertias_active:
@@ -507,9 +496,9 @@ class RerunVisualizer(BaseVisualizer):
             oMd = oMf * fMd
             # apply shaped box with tf to MeshCat
             # TODO change this to add objects only if they are not already in the viewer
-            if idJoint == 3:
-                print(f"{self.model.names[idJoint]}")
-                print(eigenvectors)
+            # if idJoint == 3:
+                # print(f"function visualizeInertias : {self.model.names[idJoint]}")
+                # print(eigenvectors)
             self.addBox(f"{self.model.names[idJoint]}", [w, d, h], "red", category="inertias")
             self.set_pose(f"{self.model.names[idJoint]}", oMd, category="inertias")
 

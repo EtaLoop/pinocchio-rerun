@@ -4,7 +4,7 @@ import numpy as np
 import rerun.blueprint as rrb
 import rerun as rr
 
-from rerun_visualizer_draft import RerunVisualizer
+from pinocchio_rerun import RerunVisualizer
 
 try:
     from example_parallel_robots.loader_tools import completeRobotLoader

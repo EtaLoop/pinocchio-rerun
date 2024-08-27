@@ -4,7 +4,7 @@ import numpy as np
 import rerun.blueprint as rrb
 import rerun as rr
 
-from rerun_visualizer_draft import RerunVisualizer
+from pinocchio_rerun import RerunVisualizer
 
 solo = robex.load("talos")
 model = solo.model

@@ -1,0 +1,2 @@
+python_install_on_site(pinocchio_rerun __init__.py)
+python_install_on_site(pinocchio_rerun rerun_visualizer.py)

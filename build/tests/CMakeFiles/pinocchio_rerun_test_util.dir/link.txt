@@ -1,2 +1,0 @@
-/home/ldematteis/mambaforge/envs/Release/bin/ar qc ../lib/libpinocchio_rerun_test_util.a CMakeFiles/pinocchio_rerun_test_util.dir/util.cpp.o
-/home/ldematteis/mambaforge/envs/Release/bin/ranlib ../lib/libpinocchio_rerun_test_util.a

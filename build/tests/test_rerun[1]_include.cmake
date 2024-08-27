@@ -1,5 +1,0 @@
-if(EXISTS "/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/build/tests/test_rerun[1]_tests.cmake")
-  include("/local/usr/ldematteis/Repositories/Software_Perso/pinocchio-rerun/build/tests/test_rerun[1]_tests.cmake")
-else()
-  add_test(test_rerun_NOT_BUILT test_rerun_NOT_BUILT)
-endif()

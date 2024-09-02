@@ -489,32 +489,62 @@ class RerunVisualizer(BaseVisualizer):
             I_xx_p, I_yy_p, I_zz_p = eigenvalues
 
             ## compute box lengthes
-            h = np.sqrt(6 * (I_xx_p + I_yy_p - I_zz_p) / (I.mass)) * scale
-            d = np.sqrt(6 * (I_xx_p - I_yy_p + I_zz_p) / (I.mass)) * scale
-            w = np.sqrt(6 * (-I_xx_p + I_yy_p + I_zz_p) / (I.mass)) * scale
+            d = np.sqrt(6 * (I_xx_p + I_yy_p - I_zz_p) / (I.mass)) * scale
+            w = np.sqrt(6 * (I_xx_p - I_yy_p + I_zz_p) / (I.mass)) * scale
+            h = np.sqrt(6 * (-I_xx_p + I_yy_p + I_zz_p) / (I.mass)) * scale
 
             # get tf between frame link and CoM link
             oMi = self.data.oMi[idJoint]
-            # oMi = pin.SE3.Identity()
 
-            iMf = pin.SE3.Identity()
-            iMf.translation = I.lever
+            iMcom = pin.SE3.Identity()
+            iMcom.translation = I.lever
             
-            fMd = pin.SE3.Identity()
-            fMd.rotation = eigenvectors
+            comMinertia = pin.SE3.Identity()
+            comMinertia.rotation = eigenvectors
 
-            oMf = oMi * iMf
-            oMd = oMf * fMd
+            oMcom = oMi * iMcom
+            oMinertia = (oMcom) * comMinertia
             # apply shaped box with tf to MeshCat
             # TODO change this to add objects only if they are not already in the viewer
-            if idJoint == 3:
-                print(f"{self.model.names[idJoint]}")
-                print(eigenvectors)
-            self.addBox(f"{self.model.names[idJoint]}", [w, d, h], "red", category="inertias")
-            self.set_pose(f"{self.model.names[idJoint]}", oMd, category="inertias")
+            self.addBox(f"{self.model.names[idJoint]}", [h, w, d], "red", category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}", oMinertia, category="inertias")
 
             self.addSphere(f"{self.model.names[idJoint]}_CoM", 0.01*scale_com, "blue", category="inertias")
-            self.set_pose(f"{self.model.names[idJoint]}_CoM", oMd, category="inertias")
+            self.set_pose(f"{self.model.names[idJoint]}_CoM", oMcom, category="inertias")
+    
+    def addArrow(self, name, position, vector, radius, length, color="green", prefix="arrows"):
+        if not isinstance(color, str):
+            if not isinstance(color, list):
+                raise AttributeError("color must be a string or a list of 3 to 4 integers")
+            elif not (len(color)==3 or len(color)==4):
+                raise AttributeError("color list must have 3 or 4 elements")
+        if isinstance(color, str):
+            if color not in COLORS_PREDEFINED.keys():
+                raise AttributeError(f"color must be one of {COLORS_PREDEFINED.keys()} or a list of rgb values")
+            color = COLORS_PREDEFINED[color]
+        
+        complete_prefix = f"{self.objects_prefix}/{prefix}"
+        rr.log(
+            f"{complete_prefix}/{name}",
+            rr.archetypes.Arrows3D(
+                origins=[position],
+                vectors=[(np.array(vector)*length).tolist()],
+                radii=[radius],
+                colors=[color],
+            ),
+        )
+    
+    def drawFrame(self, name, placement, length=1e-1, radius=1e-3, scaling=1, prefix="frames"):
+        length *= scaling
+        radius *= scaling
+        position = placement.translation
+        rotation = placement.rotation
+        # X arrow
+        self.addArrow(f"{name}_X", position, rotation[:, 0], radius, length, "red", f"{prefix}/{name}")
+        # Y arrow
+        self.addArrow(f"{name}_Y", position, rotation[:, 1], radius, length, "green", f"{prefix}/{name}")
+        # Z arrow
+        self.addArrow(f"{name}_Z", position, rotation[:, 2], radius, length, "blue", f"{prefix}/{name}")
 
     def captureImage(self):
         pass

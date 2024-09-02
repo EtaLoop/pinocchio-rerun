@@ -262,7 +262,7 @@ class RerunVisualizer(BaseVisualizer):
                         # print(obj.meshPath)
                         # rrMesh = rr.Asset3D(path=obj.meshPath)
                         path = getEntityPath(obj, self.visual_prefix)
-                        rr.log(path, rrMesh)
+                        rr.log(path, rrMesh, static=True)
                     case hppfcl.BV_KDOP16:
                         pass
                     case hppfcl.BV_KDOP18:
@@ -274,7 +274,7 @@ class RerunVisualizer(BaseVisualizer):
                         )
                         rrMesh = meshDescriptionToRerun(meshDesc)
                         # rrMesh = rr.Asset3D(path=obj.meshPath)
-                        rr.log_timeless(getEntityPath(obj, self.visual_prefix), rrMesh)
+                        rr.log(getEntityPath(obj, self.visual_prefix), rrMesh, static=True)
                     case _:
                         warn(f"Unknown or unsupported HPP-FCL node type {nodeType}")
             case _:
